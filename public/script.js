@@ -4,20 +4,23 @@ const tagForm = document.querySelector("#tag-form");
 const foodRef = firebase.database().ref();
 
 const currentCards = [];
+window.onload = () => {
+    foodRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        for (const recordKey in data) {
+            let card = data[recordKey];
+            const parent = document.querySelector("#grid");
+            const container = document.createElement("div");
+            container.setAttribute("id", recordKey);
+            container.classList.add("card");
+            container.innerHTML = createInnerCard(card);
+            parent.appendChild(container);
 
-foodRef.on('value', (snapshot) => {
-    const data = snapshot.val();
-    Object.values(data).forEach(card => {
-        const parent = document.querySelector("#grid");
-        const container = document.createElement("div");
-        container.classList.add("card");
-        container.innerHTML = createInnerCard(card);
-        parent.appendChild(container);
+            currentCards.push(card);
+        };
 
-        currentCards.push(card);
     });
-    
-});
+}
 
 function createInnerCard(card) {
     return `
@@ -78,15 +81,20 @@ function createCard() {
                 title: title,
                 tags: tags
             };
-            firebase.database().ref().push(card);
+            let newRef = firebase.database().ref().push(card).then((snap) => {
 
-            const parent = document.querySelector("#grid");
-            const container = document.createElement("div");
-            container.classList.add("card");
-            container.innerHTML = createInnerCard(card);
-            parent.appendChild(container);
+                // const parent = document.querySelector("#grid");
+                // const container = document.createElement("div");
+                // container.setAttribute('id', snap.key);
+                // console.log(snap.key);
+                // container.classList.add("card");
+                // container.innerHTML = createInnerCard(card);
+                // parent.appendChild(container);
 
-            currentCards.push(card);
+                currentCards.push(card);
+
+            })
+
         });
 
 
