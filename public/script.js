@@ -3,12 +3,13 @@ const titleForm = document.querySelector("#title-form");
 const tagForm = document.querySelector("#tag-form");
 const foodRef = firebase.database().ref();
 
-const currentCards = [];
-window.onload = () => {
-    foodRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        for (const recordKey in data) {
-            let card = data[recordKey];
+const currentCards = {};
+foodRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    for (const recordKey in data) {
+
+        let card = data[recordKey];
+        if (!currentCards.hasOwnProperty(recordKey)) {
             const parent = document.querySelector("#grid");
             const container = document.createElement("div");
             container.setAttribute("id", recordKey);
@@ -16,11 +17,12 @@ window.onload = () => {
             container.innerHTML = createInnerCard(card);
             parent.appendChild(container);
 
-            currentCards.push(card);
-        };
+            currentCards[recordKey] = card;
+        }
+    };
 
-    });
-}
+});
+
 
 function createInnerCard(card) {
     return `
@@ -46,15 +48,7 @@ function createInnerCard(card) {
   `;
 }
 
-function getFilteredCards(searchTerm) {
-    const filtered = [];
-    currentCards.forEach(card => {
-        if (card.tags.has(searchTerm)) {
-            filtered.push(card);
-        }
-    });
-    return filtered;
-}
+function hideUnfilteredcards(searchTerm) {}
 
 function createCard() {
     let title = titleForm.value;
@@ -81,19 +75,7 @@ function createCard() {
                 title: title,
                 tags: tags
             };
-            let newRef = firebase.database().ref().push(card).then((snap) => {
-
-                // const parent = document.querySelector("#grid");
-                // const container = document.createElement("div");
-                // container.setAttribute('id', snap.key);
-                // console.log(snap.key);
-                // container.classList.add("card");
-                // container.innerHTML = createInnerCard(card);
-                // parent.appendChild(container);
-
-                currentCards.push(card);
-
-            })
+            firebase.database().ref().push(card);
 
         });
 
