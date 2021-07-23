@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/8.8.0/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+
+    <script defer src="/__/firebase/8.8.0/firebase-database.js"></script>
+   
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/bulma@0.9.0/css/bulma.min.css" />
+    <link rel="stylesheet" type="text/css" href="style.css">
+    
+  </head>
+ <body>
+    <!-- HERO -->
+    <section class="hero has-background-success-dark has-text-centered">
+      <div class="hero-body">
+        <p class="title is-size-1">
+          Food Dishes
+        </p>
+        <p class="subtitle is-size-3">
+          Create your own dish
+        </p>
+      </div>
+    </section>
+    
+    <! -- Card form -->
+    <section>
+        <input id="title-form" class="input is-primary" type="text" placeholder="Dish name">
+        <input id="tag-form" class="input is-primary" type="text" placeholder="tags">
+        <button id="submit-button" class="button is-info" onclick = "createCard()">
+          Create Dish!
+        </button>
+    
+    </section>
+    
+    <!-- ROW 1 -->
+    <div id="grid">
+      
+    </div>
+    <script defer src="script.js"></script>
+  </body>
+</html>
