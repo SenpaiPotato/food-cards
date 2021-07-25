@@ -51,10 +51,16 @@ function createInnerCard(card) {
 }
 
 function hideUnfilteredCards(searchTerm) {
-    console.log(searchTerm);
+    // Create a regular expression that checks if the search term is anywhere inside a string 
+    // .* on both sides means that any characters can come before or after the search term
+    const searchRe = new RegExp(`.*(${searchTerm.toLowerCase()}).*`, 'g');
     for (const cardKey in currentCards) {
         let card = currentCards[cardKey];
-        if (card.tags.includes(searchTerm) || searchTerm === "") {
+        // Check if the search term mastches the card titlee
+        const foundTitleMatch = searchRe.test(card.title.toLowerCase());
+        // Check if search term matches some (one or more) of the tags. If any matches, it returns true
+        const foundTagMatch = card.tags.some(tagValue => searchRe.test(tagValue.toLowerCase()));
+        if (searchTerm === "" || foundTitleMatch || foundTagMatch) {
             document.getElementById(cardKey).hidden = false;
         } else {
             document.getElementById(cardKey).hidden = true;
@@ -92,4 +98,4 @@ function createCard() {
         });
 }
 
-searchForm.addEventListener('change', e => hideUnfilteredCards(e.target.value));
+searchForm.addEventListener('keyup', e => hideUnfilteredCards(e.target.value));
