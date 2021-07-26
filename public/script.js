@@ -1,4 +1,6 @@
-//Take inputs and add to database
+const API_KEY = "2dcb082567fd413193937ccd8ed6e5af";
+const API_URL = "https://api.spoonacular.com/food/detect";
+
 const titleForm = document.querySelector("#title-form");
 const tagForm = document.querySelector("#tag-form");
 const searchForm = document.querySelector("#filter-form");
@@ -28,6 +30,21 @@ function createInnerCard(card, recordKey) {
     const container = document.createElement("div");
     container.classList.add("card");
     container.setAttribute("id", recordKey);
+
+    const cardHeader = document.createElement("header");
+    cardHeader.classList.add("card-header");
+
+    const deleteCardButton = document.createElement("button");
+    deleteCardButton.classList.add("is-danger", "delete");
+    cardHeader.appendChild(deleteCardButton);
+    
+    deleteCardButton.addEventListener("click", e => {
+        delete currentCards[recordKey];
+        firebase.database().ref(recordKey).remove();
+        container.remove();
+    });
+
+    container.appendChild(cardHeader);
 
     const cardImage = document.createElement("div");
     cardImage.classList.add("card-image");
@@ -131,12 +148,32 @@ function createCard() {
         return;
     }
 
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
-    fetch("https://foodish-api.herokuapp.com/api")
+    var urlencoded = new URLSearchParams();
+    urlencoded.append("text", title);
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: urlencoded,
+        redirect: 'follow'
+    };
+
+
+    fetch(`${API_URL}?apiKey=${API_KEY}`, requestOptions)
         .then(response => response.json())
         .then(data => {
+            let annotations = data["annotations"];
+            let imageURL;
+            if (annotations.length < 1) {
+                imageURL = "https://toppng.com/uploads/preview/clipart-free-seaweed-clipart-draw-food-placeholder-11562968708qhzooxrjly.png";
+            } else {
+                imageURL = annotations[0].image;
+            }
             let card = {
-                imgURL: data.image,
+                imgURL: imageURL,
                 title: title,
                 tags: tags
             };
