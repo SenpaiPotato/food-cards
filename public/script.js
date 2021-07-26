@@ -31,26 +31,14 @@ function createInnerCard(card, recordKey) {
     container.classList.add("card");
     container.setAttribute("id", recordKey);
 
-    const cardHeader = document.createElement("header");
-    cardHeader.classList.add("card-header");
 
-    const deleteCardButton = document.createElement("button");
-    deleteCardButton.classList.add("is-danger", "delete");
-    cardHeader.appendChild(deleteCardButton);
-    
-    deleteCardButton.addEventListener("click", e => {
-        delete currentCards[recordKey];
-        firebase.database().ref(recordKey).remove();
-        container.remove();
-    });
-
-    container.appendChild(cardHeader);
 
     const cardImage = document.createElement("div");
     cardImage.classList.add("card-image");
     cardImage.innerHTML = `
-                <figure class="image is-square">
+            <figure class="image is-square">
               <img
+                id="img-${recordKey}"
                 src="${card.imgURL}"
                 alt="${card.title}"
               />
@@ -101,8 +89,44 @@ function createInnerCard(card, recordKey) {
     content.appendChild(tagsContainer);
     cardContent.appendChild(content);
 
+    const cardFooter = document.createElement("footer");
+    cardFooter.classList.add("card-footer");
+
+    const editPhotoButton = document.createElement("a");
+    editPhotoButton.textContent = "Change Picture";
+    editPhotoButton.classList.add("card-footer-item");
+    cardFooter.appendChild(editPhotoButton);
+    
+    editPhotoButton.addEventListener("click", e => {
+        const imgURL = prompt("New Image:").trim();
+        
+        if (imgURL !== null && imgURL !== "") {
+            const cardImage = document.getElementById(`img-${recordKey}`);
+            cardImage.setAttribute('src', imgURL);
+            const updatedCard = {
+                ...card,
+                imgURL: imgURL
+            };
+            console.log(updatedCard);
+            currentCards[recordKey] = updatedCard;
+            firebase.database().ref(recordKey).set(updatedCard);
+        }
+    });
+
+    const deleteCardButton = document.createElement("a");
+    deleteCardButton.textContent = "Delete";
+    deleteCardButton.classList.add("card-footer-item");
+    cardFooter.appendChild(deleteCardButton);
+    
+    deleteCardButton.addEventListener("click", e => {
+        delete currentCards[recordKey];
+        firebase.database().ref(recordKey).remove();
+        container.remove();
+    });
+
     container.appendChild(cardImage);
     container.appendChild(cardContent);
+    container.appendChild(cardFooter);
     return container;
 }
 
