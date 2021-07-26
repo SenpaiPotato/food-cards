@@ -133,7 +133,7 @@ function createInnerCard(card, recordKey) {
 function hideUnfilteredCards(searchTerm) {
     // Create a regular expression that checks if the search term is anywhere inside a string 
     // .* on both sides means that any characters can come before or after the search term
-    const searchRe = new RegExp(`.*(${searchTerm.toLowerCase()}).*`, 'g');
+    const searchRe = new RegExp(`.*(${searchTerm.toLowerCase()}).*`);
     for (const cardKey in currentCards) {
         let card = currentCards[cardKey];
         // Check if the search term mastches the card titlee
