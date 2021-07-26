@@ -2,6 +2,7 @@
 const titleForm = document.querySelector("#title-form");
 const tagForm = document.querySelector("#tag-form");
 const searchForm = document.querySelector("#filter-form");
+const potentialTagsContainer = document.querySelector("#potential-tags");
 const foodRef = firebase.database().ref();
 
 const currentCards = {};
@@ -12,10 +13,7 @@ foodRef.on('value', (snapshot) => {
         let card = data[recordKey];
         if (!currentCards.hasOwnProperty(recordKey)) {
             const parent = document.querySelector("#grid");
-            const container = document.createElement("div");
-            container.setAttribute("id", recordKey);
-            container.classList.add("card");
-            container.innerHTML = createInnerCard(card);
+            const container = createInnerCard(card, recordKey);
             parent.appendChild(container);
 
             currentCards[recordKey] = card;
@@ -26,28 +24,69 @@ foodRef.on('value', (snapshot) => {
 
 
 
-function createInnerCard(card) {
-    return `
-        <!-- CARD -->
-        
-          <div class="card-image">
-            <figure class="image is-square">
+function createInnerCard(card, recordKey) {
+    const container = document.createElement("div");
+    container.classList.add("card");
+    container.setAttribute("id", recordKey);
+
+    const cardImage = document.createElement("div");
+    cardImage.classList.add("card-image");
+    cardImage.innerHTML = `
+                <figure class="image is-square">
               <img
                 src="${card.imgURL}"
                 alt="${card.title}"
               />
             </figure>
-          </div>
-          <div class="card-content">
-            <div class="content">
-              <p class="title is-4">${card.title}</p>
-              <p class="subtitle is-6">${card.tags.map(tag => {
-        return `<span class="tag is-dark">${tag}</span>`;
-    }).join('')}</p>
-            </div>
-          </div>
+    `;
 
-  `;
+    const cardContent = document.createElement("div");
+    cardContent.classList.add("card-content");
+    const content = document.createElement("div");
+    content.classList.add("content");
+
+    content.innerHTML = `
+     <p class="title is-4">${card.title}</p>
+    <p class="subtitle is-6">
+    `;
+
+    const tagsContainer = document.createElement("div");
+    tagsContainer.classList.add("tags");
+    if (!card.hasOwnProperty("tags")) {
+        card["tags"] = [];
+    }
+
+    card.tags.forEach(tag => {
+        tagsContainer.appendChild(buildTag(card, tag, recordKey));
+    })        
+
+    const addTagButton = document.createElement("button");
+    addTagButton.classList.add("button", "is-small", "is-primary", "is-align-self-flex-end");
+    addTagButton.textContent = "Add Tag";
+
+    addTagButton.addEventListener('click', e => {
+        let tag = prompt("New tag:").trim();
+        
+        if (tag !== null && tag !== "") {
+            tagsContainer.insertBefore(buildTag(card, tag, recordKey), addTagButton)
+            const updatedCard = {
+                ...card,
+                tags: card.tags.concat([tag]),
+            };
+            console.log(updatedCard);
+            currentCards[recordKey] = updatedCard;
+            firebase.database().ref(recordKey).set(updatedCard);
+        }
+    });
+
+    tagsContainer.appendChild(addTagButton);
+
+    content.appendChild(tagsContainer);
+    cardContent.appendChild(content);
+
+    container.appendChild(cardImage);
+    container.appendChild(cardContent);
+    return container;
 }
 
 function hideUnfilteredCards(searchTerm) {
@@ -67,13 +106,22 @@ function hideUnfilteredCards(searchTerm) {
         }
     }
 }
+function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
 
 function createCard() {
     let title = titleForm.value;
     // TODO Check for URL with re
     console.log(tagForm.value);
-    let tags = tagForm.value.split(",");
+    // Get all new tags and get its value (Have to convert from NodeList returned by querySelector all to an Array)
+    const tags = Array.from( document.querySelectorAll(".new-tag")).map(element => element.textContent.trim());
+    
+    removeAllChildNodes(potentialTagsContainer);
 
+    console.log(tags);
 
     titleForm.value = "";
     tagForm.value = "";
@@ -87,7 +135,6 @@ function createCard() {
     fetch("https://foodish-api.herokuapp.com/api")
         .then(response => response.json())
         .then(data => {
-            tags = tags.map(tag => tag.trim());
             let card = {
                 imgURL: data.image,
                 title: title,
@@ -99,3 +146,45 @@ function createCard() {
 }
 
 searchForm.addEventListener('keyup', e => hideUnfilteredCards(e.target.value));
+tagForm.addEventListener('change', e => {
+    const tagValue = tagForm.value.trim();
+    if (tagValue === "") {
+        return;
+    }
+
+    
+    const newTagElement = document.createElement("span");
+    newTagElement.classList.add("new-tag", "tag", "is-dark");
+    newTagElement.textContent = tagValue;
+    const tagDeleteButton = document.createElement("button");
+    tagDeleteButton.classList.add("delete");
+    newTagElement.appendChild(tagDeleteButton);
+    tagDeleteButton.addEventListener('click', event => {
+        newTagElement.remove();
+    });
+    potentialTagsContainer.appendChild(newTagElement);
+
+    tagForm.value = "";
+});
+
+function buildTag(card, tag, recordKey) {
+    const currentTagElement = document.createElement('span');
+    currentTagElement.classList.add("tag", "is-dark");
+    const tagButton = document.createElement("button");
+    tagButton.classList.add('delete');
+    currentTagElement.textContent = tag;
+    currentTagElement.appendChild(tagButton);
+    tagButton.addEventListener('click', e => {
+        currentTagElement.remove();
+        const updatedCard = {
+            ...card,
+            tags: card.tags.filter(item => item !== tag),
+        };
+        console.log(updatedCard);
+        currentCards[recordKey] = updatedCard;
+        firebase.database().ref(recordKey).set(updatedCard);
+    });
+
+    return currentTagElement;
+}
+
